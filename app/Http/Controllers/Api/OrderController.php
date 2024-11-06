@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cart;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
@@ -46,5 +48,45 @@ class OrderController extends Controller
     public function destroy(Order $order)
     {
         //
+    }
+
+    public function cart()
+    {
+        try {
+            $user = Auth::guard('api')->user();
+            $cart = Cart::where('user_id', $user->id)
+                ->with('menu')
+                ->get();
+
+            return response()->json([
+                'message' => 'Success',
+                'data' => $cart
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Failed',
+                'data' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function history()
+    {
+        try {
+            $user = Auth::guard('api')->user();
+            $orders = Order::where('user_id', $user->id)
+                ->with('orderItems.menu')
+                ->get();
+
+            return response()->json([
+                'message' => 'Success',
+                'data' => $orders
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Failed',
+                'data' => $th->getMessage()
+            ], 500);
+        }
     }
 }
